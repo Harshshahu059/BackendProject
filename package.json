@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon  -r dotenv/config --experimental-json-modules src/index.js"
   },
   "keywords": [
     "javascrpit",
@@ -17,5 +17,11 @@
   "devDependencies": {
     "nodemon": "^3.1.7",
     "prettier": "^3.4.2"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.8.4"
   }
 }
