@@ -3,8 +3,8 @@ class apiError extends Error {
     constructor(
         statuscode, // The HTTP status code representing the type of error (e.g., 400, 404, 500).
         message = "Something went wrong", // A default error message if none is provided.
-        error = [],                // Additional error details, usually an array of specific issues.
-        statck = ""                // A placeholder for the stack trace, not used here explicitly.
+        error = [], // Additional error details, usually an array of specific issues.
+        stack = "" // A placeholder for the stack trace, not used here explicitly.
     ) {
         super(message);            // Call the parent Error class's constructor to set the error message.
         this.statuscode = statuscode; // Assign the HTTP status code to the instance.
@@ -14,8 +14,8 @@ class apiError extends Error {
          
 
     
-        if (statck) {
-            this.stack=statck
+        if (stack) {
+            this.stack=stack
             
         }else{
             error.captureStackTrace(this,this.constructor)
