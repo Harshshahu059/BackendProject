@@ -1,7 +1,7 @@
 import express from "express";
 import connectionDb from "./db/database.js";
 import Dotenv  from "dotenv";
-const app=express()
+import {app} from './app.js'
 Dotenv.config(
     {
         path:'./env'
@@ -21,7 +21,7 @@ connectionDb()
 
 })
 
-app.listen(process.env.PORT,()=>{
-    console.log(`sever is listen at ${process.env.PORT}`)
-})
+// app.listen(process.env.PORT,()=>{
+//     console.log(`sever is listen at ${process.env.PORT}`)
+// })
 
