@@ -1,32 +1,36 @@
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {apiError} from "../utils/apiError.js"
-import usermodel from "../models/user.models.js"
+import {usermodel} from "../models/user.models.js"
 import {uplodeOnCloudinary} from "../utils/cloudinary.js"
 import {apiResponse}from "../utils/apiResponse.js"
 
 let registerUser=asyncHandler(async(req,res)=>{
 
-    let {username,email,password,fullname}=req.body()
+    let {username,email,password,fullname}=req.body
     let deatailVaild=[username,email,password,fullname].some((filed)=>
         filed?.trim()===""   
     )
     if (deatailVaild) {
         throw new apiError(401,"All fields are required")     
     }
-    let user=usermodel.findOne(
+    let user=await usermodel.findOne(
       { $or: [{username},{email}]}
     )
     if(user){
         throw new apiError(400,"already existed!!")    
     }
     let avatarpath=req.files?.avatar[0]?.path;
-    let coverimage=req.files?.avatar[0]?.path;
+
+    let coverimagepath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverimagepath=req.files.coverImage[0].path      
+    }
     if(!avatarpath){
         throw new apiError(400,"avatar file in reqired")
     }
 
    let avatarUploadlocal= await uplodeOnCloudinary(avatarpath)
-   let coverimageUploadlocal=await uplodeOnCloudinary(coverimage)
+   let coverimageUploadlocal=await uplodeOnCloudinary(coverimagepath||"")
 
    if(!avatarUploadlocal){
     throw new apiError(400,"avatar file in reqired")
@@ -35,7 +39,7 @@ let registerUser=asyncHandler(async(req,res)=>{
  const userCreate=await usermodel.create({
     fullname,
     avatar:avatarUploadlocal.url,
-    coverimage:coverimageUploadlocal?.url||"",
+    coverImage:coverimageUploadlocal?.url||"",
     email,
     password,
     username:username.toLowerCase()
