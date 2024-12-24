@@ -13,6 +13,7 @@ cloudinary.config({
    const resource= await cloudinary.uploader.upload(
         filepath, { resource_type:"auto"}
     )
+    // console.log(resource)
 
     fs.unlinkSync(filepath)
     return resource

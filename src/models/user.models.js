@@ -51,7 +51,7 @@ userScheam.pre('save', async function (next) {
      this.password = await bcrypt.hash(this.password,10) 
       next()
 })
-userScheam.method.isPasswordMatch= async function (next,password) {
+userScheam.method.isPasswordMatch= async function (password) {
     return await bcrypt.compare(password,this.password);
 }
 
