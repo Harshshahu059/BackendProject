@@ -2,27 +2,30 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 import {apiError} from "../utils/apiError.js"
 import {usermodel} from "../models/user.models.js"
 import {uplodeOnCloudinary} from "../utils/cloudinary.js"
-import {apiResponse}from "../utils/apiResponse.js"
+import {apiResponse} from "../utils/apiResponse.js"
 
 
-try {
-    const generateAccessAndreFreshToken=async()=>{
-        let user=await usermodel.findOne(user._id)
-        let userAccessToken=user.generateAccessToken()
-        let userRefreshToken=user.generateRefreshToken(user._id)
-     user.refreshToken=userRefreshToken;
-     await user.save({vaildateBeforeSave:false} )
-     return {userAccessToken,userRefreshToken}
 
+    const generateAccessAndrefreshToken=async(userId)=>{
+   try {
+    const user=await usermodel.findById(userId)
+    const accessToken=user.generateAccessToken()
+    const refreshToken=user.generateRefreshToken()
+    user.refreshToken=refreshToken;
+     await user.save({validateBeforeSave:false})
+     console.log(accessToken)
+      return{accessToken,refreshToken}
+    
+   } catch (error) {
+    
+       throw new apiError(500,"Someting went wrong while generated access and refersh token")
+   }
 
     }
-} catch (error) {
-    throw new apiError(500,"Someting went wrong while generated access and refersh token")
-    
-}
 
 
-let registerUser=asyncHandler(async(req,res)=>{
+
+const registerUser=asyncHandler(async(req,res)=>{
 
 
     let {username,email,password,fullname}=req.body
@@ -81,34 +84,34 @@ return res.status(200).json(
 
 
 })
-let loginUser=asyncHandler(async (req,res)=>{
+const loginUser=asyncHandler(async (req,res)=>{
     let{username,password,email}=req.body
-     if(!username||!email ){
-        throw new apiError(200,"username or email is required")
+     if((!username&&!email)){
+        throw new apiError(401,"username or email is required")
     }
 
-let user =await usermodel.findOne( {$or:[{username},{email}]})
+let user=await usermodel.findOne( {$or:[{username},{email}]})
 if(!user){
-    throw new apiError(200,"username or email is invaild")
+    throw new apiError(401,"username or email is invaild")
 }
 let isvaild=await user.isPasswordMatch(password)
 if (!isvaild) {
     throw new apiError(401,"invaild entry")
        
 }
-const {userAccessToken,userRefreshToken}= await generateAccessAndreFreshToken(user._id)
-const loggedInUser=await usermodel.findOne(user._id).select("-password -refreshToken") 
+const {accessToken,refreshToken}= await generateAccessAndrefreshToken(user._id)
+const loggedInUser=await usermodel.findById(user._id).select("-password -refreshToken") 
 
 const options={
     httpOnly:true,
     secure:true
 }
 return res.status(200)
-.cookie("accessToken",userAccessToken,options)
-.cookie("refreshToken",userRefreshToken,options)
+.cookie("accessToken",accessToken,options)
+.cookie("refreshToken",refreshToken,options)
 .json(
     new apiResponse(200,{
-        user:loggedInUser,userAccessToken,userRefreshToken //data
+        user:loggedInUser,accessToken,refreshToken //data
     },"User Login successfully"//message 
 )
 )
@@ -116,6 +119,33 @@ return res.status(200)
 
 })
 
+let logoutUser=asyncHandler(async(req,res)=>{
+    // remove user ke refersh token 
+    //remove user access token
+    await usermodel.findByIdAndUpdate(
+        req.user._id,
+        { 
+            $set:{
+                refreshToken:undefined
+            }
+        },
+        {
+            new:true
+        }
+    )
+    const options={
+        httpOnly:true,
+        secure:true
+    }
+    return res
+    .status(200)
+    .clearCookie("accessToken" ,options)
+    .clearCookie("refreshToken" ,options)
+    .json(new apiError(200,{},"user logout successfulaly"))
+
+})
+
     
 
-export {registerUser}
+
+export {registerUser,loginUser,logoutUser}
