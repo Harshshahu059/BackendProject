@@ -3,6 +3,7 @@ import {apiError} from "../utils/apiError.js"
 import {usermodel} from "../models/user.models.js"
 import {uplodeOnCloudinary} from "../utils/cloudinary.js"
 import {apiResponse} from "../utils/apiResponse.js"
+import jwt from "jsonwebtoken"
 
 
 
@@ -126,7 +127,7 @@ const logoutUser=asyncHandler(async(req,res)=>{
         req.user._id,
         { 
             $set:{
-                refreshToken:undefined
+                refreshToken:undefined//here is promblem
             }
         },
         {
@@ -145,8 +146,39 @@ const logoutUser=asyncHandler(async(req,res)=>{
 
 })
 
+const refershAccessToken=asyncHandler(async(req,res)=>{
+    const token=req.cookies.refreshToken||req.body.refreshToken;
+    if(!token){
+        throw new apiError(404,"refresh token is not found!!")
+    }
+    const decodedToken= jwt.verify(token,process.env.REFRESH_TOKEN_SECRET)
+    const user= await usermodel.findById(decodedToken?._id)
+    if(!user){
+        throw new apiError(404," user not found!!")
+    }
+    if(token!==user?.refreshToken){
+        throw new apiError(401,"invaild refresh token!!")
+    }
+
+  const {accessToken,refreshToken}=await generateAccessAndrefreshToken(user._id)
+  const options={
+    httpOnly:true,
+    secure:true
+}
+console.log(refreshToken)
+  return res
+  .status(200)
+  .cookie("accessToken",accessToken,options)
+  .cookie("refreshToken",refreshToken,options)
+  .json(
+    new apiResponse(200,
+    {accessToken,refreshToken:refreshToken}
+    ,"Succesfully genarate accessToken"))
+
+})
 
 
 
 
-export {registerUser,loginUser,logoutUser}
+
+export {registerUser,loginUser,logoutUser,refershAccessToken}
