@@ -6,7 +6,7 @@ import {apiResponse} from "../utils/apiResponse.js"
 
 
 
-    const generateAccessAndrefreshToken=async(userId)=>{
+const generateAccessAndrefreshToken=async(userId)=>{
    try {
     const user=await usermodel.findById(userId)
     const accessToken=user.generateAccessToken()
@@ -21,7 +21,7 @@ import {apiResponse} from "../utils/apiResponse.js"
        throw new apiError(500,"Someting went wrong while generated access and refersh token")
    }
 
-    }
+}
 
 
 
@@ -95,7 +95,7 @@ if(!user){
     throw new apiError(401,"username or email is invaild")
 }
 let isvaild=await user.isPasswordMatch(password)
-if (!isvaild) {
+if(!isvaild) {
     throw new apiError(401,"invaild entry")
        
 }
@@ -119,7 +119,7 @@ return res.status(200)
 
 })
 
-let logoutUser=asyncHandler(async(req,res)=>{
+const logoutUser=asyncHandler(async(req,res)=>{
     // remove user ke refersh token 
     //remove user access token
     await usermodel.findByIdAndUpdate(
@@ -139,13 +139,14 @@ let logoutUser=asyncHandler(async(req,res)=>{
     }
     return res
     .status(200)
-    .clearCookie("accessToken" ,options)
-    .clearCookie("refreshToken" ,options)
-    .json(new apiError(200,{},"user logout successfulaly"))
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(new apiResponse(200,{},"user logout successfully"))
 
 })
 
-    
+
+
 
 
 export {registerUser,loginUser,logoutUser}
