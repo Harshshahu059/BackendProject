@@ -14,12 +14,12 @@ class apiError extends Error {
          
 
     
-        if (stack) {
-            this.stack=stack
+        // if (stack) {
+        //     this.stack=stack
             
-        }else{
-            error.captureStackTrace(this,this.constructor)
-        }
+        // }else{
+        //     error.captureStackTrace(this,this.constructor)
+        // }
     }
 
 }

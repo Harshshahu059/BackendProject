@@ -14,7 +14,6 @@ const generateAccessAndrefreshToken=async(userId)=>{
     const refreshToken=user.generateRefreshToken()
     user.refreshToken=refreshToken;
      await user.save({validateBeforeSave:false})
-     console.log(accessToken)
       return{accessToken,refreshToken}
     
    } catch (error) {
@@ -85,6 +84,7 @@ return res.status(200).json(
 
 
 })
+
 const loginUser=asyncHandler(async (req,res)=>{
     let{username,password,email}=req.body
      if((!username&&!email)){
@@ -177,8 +177,29 @@ console.log(refreshToken)
 
 })
 
+const changePassword=asyncHandler(async(req,res)=>{
+    const {oldPassword,newPassword}=req.body
+    const user=await usermodel.findById(req.user._id)
+    if(!user){
+        throw new apiError(404,"user not found")
+    }
+    const vaildPassword=await user.isPasswordMatch(oldPassword)
+    if(!vaildPassword){
+        throw new apiError(401,"old password is not match !!")
+    }
+    user.password=newPassword
+    await user.save({validateBeforeSave:false}) 
+    return res.status(200)
+              .json(new apiResponse(200,{},"password change succesfully"))
+
+})
+
+const getCurrentUser=asyncHandler(async(req,res)=>{
+    return res
+    .status(200)
+    .json(new apiResponse(200,req.user,"current user fetched successfully"))
+})
 
 
 
-
-export {registerUser,loginUser,logoutUser,refershAccessToken}
+export {registerUser,loginUser,logoutUser,refershAccessToken,changePassword,getCurrentUser}
