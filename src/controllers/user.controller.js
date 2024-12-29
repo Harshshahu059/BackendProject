@@ -200,6 +200,80 @@ const getCurrentUser=asyncHandler(async(req,res)=>{
     .json(new apiResponse(200,req.user,"current user fetched successfully"))
 })
 
+const updateAccountDetails=asyncHandler(async(req,res)=>{
+    const{fullname,email}=req.body
+    if(!fullname||!email){
+        throw new apiError(400,"must be provide both email and fullname")
+    }
+    const user=await usermodel.findByIdAndUpdate(
+        req.user._id,
+        {
+            
+          $set:{
+            fullname,//fullname:fullname
+            email //email:email
+          }
+            
+        },
+        {new:true}
+    ).select("-password")
+    return res.
+    status(200)
+    .json(new apiResponse(200,user,"user update succesfully!!"))
+   
+})
+
+const updateUserAvatar=asyncHandler(async(req,res)=>{
+    const avatarpath=req.file?.path
+    if(!avatarpath){
+        throw new apiError(404,"avatar image  not found upload it first")
+    }
+    const avatarUpload=await uplodeOnCloudinary(avatarpath)
+    const user=await usermodel.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set:{
+                avatar:avatarUpload.url
+            }
+        },
+        {new:true}
+    ).select("-password")
+    res.status(200)
+    .json(new apiResponse(200,user,"avatar change succesfully!"))
+
+    
+})
+
+const updateUserCoverimage=asyncHandler(async(req,res)=>{
+    const coverImage=req.file?.path
+    if(!coverImage){
+        throw new apiError(404,"coverImage image  not found upload it first")
+    }
+    const coverImageUpload=await uplodeOnCloudinary(coverImage)
+    const user=await usermodel.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set:{
+                coverImage:coverImageUpload.url
+            }
+        },
+        {new:true}
+    ).select("-password")
+    res.status(200)
+    .json(new apiResponse(200,user,"coverImage change succesfully!"))
+    
+    
+})
 
 
-export {registerUser,loginUser,logoutUser,refershAccessToken,changePassword,getCurrentUser}
+export {
+    registerUser,
+    loginUser,
+    logoutUser,
+    refershAccessToken,
+    changePassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverimage
+}
