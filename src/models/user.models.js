@@ -28,9 +28,16 @@ const userSchema=new Schema({
         type:String , //couldinary url
         require:true
     },
+    avatarPublicId: {
+        type: String,  // Cloudinary public ID (used for deletion)
+        required: true
+      },
     coverImage:{
         type:String
     },
+    coverImagePublicId: {
+        type: String,  // Cloudinary public ID for cover image (optional)
+      },
     watchHistory:[
         {
             type:Schema.Types.ObjectId,

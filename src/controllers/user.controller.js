@@ -3,6 +3,7 @@ import {apiError} from "../utils/apiError.js"
 import {usermodel} from "../models/user.models.js"
 import {uplodeOnCloudinary} from "../utils/cloudinary.js"
 import {apiResponse} from "../utils/apiResponse.js"
+import {deleteFormCloudinary} from '../utils/cloudinary.delete.js'
 import jwt from "jsonwebtoken"
 
 
@@ -55,6 +56,7 @@ const registerUser=asyncHandler(async(req,res)=>{
     }
 
    let avatarUploadlocal= await uplodeOnCloudinary(avatarpath)
+   
    let coverimageUploadlocal=await uplodeOnCloudinary(coverimagepath||"")
 
    if(!avatarUploadlocal){
@@ -64,7 +66,9 @@ const registerUser=asyncHandler(async(req,res)=>{
  const userCreate=await usermodel.create({
     fullname,
     avatar:avatarUploadlocal.url,
+    avatarPublicId:avatarUploadlocal?.public_id,
     coverImage:coverimageUploadlocal?.url||"",
+    coverImagePublicId:coverimageUploadlocal?.public_id,
     email,
     password,
     username:username.toLowerCase()
@@ -224,16 +228,22 @@ const updateAccountDetails=asyncHandler(async(req,res)=>{
 })
 
 const updateUserAvatar=asyncHandler(async(req,res)=>{
+    if(!req.user.avatarPublicId){
+       throw new apiError(401,"invaild access cannot update avatar !!")
+    }
+    await deleteFormCloudinary(req.user.avatarPublicId,"image")
     const avatarpath=req.file?.path
     if(!avatarpath){
         throw new apiError(404,"avatar image  not found upload it first")
     }
     const avatarUpload=await uplodeOnCloudinary(avatarpath)
+
     const user=await usermodel.findByIdAndUpdate(
         req.user._id,
         {
             $set:{
-                avatar:avatarUpload.url
+                avatar:avatarUpload.url,
+                avatarPublicId:avatarUpload.public_id
             }
         },
         {new:true}
@@ -245,6 +255,10 @@ const updateUserAvatar=asyncHandler(async(req,res)=>{
 })
 
 const updateUserCoverimage=asyncHandler(async(req,res)=>{
+    if(!req.user.coverImagePublicId){
+        throw new apiError(401,"invaild access cannot update avatar !!")
+    }
+    await deleteFormCloudinary(req.user.coverImagePublicId,"image")
     const coverImage=req.file?.path
     if(!coverImage){
         throw new apiError(404,"coverImage image  not found upload it first")
@@ -254,7 +268,8 @@ const updateUserCoverimage=asyncHandler(async(req,res)=>{
         req.user._id,
         {
             $set:{
-                coverImage:coverImageUpload.url
+                coverImage:coverImageUpload.url,
+                coverImagePublicId:coverImageUpload.public_id
             }
         },
         {new:true}
