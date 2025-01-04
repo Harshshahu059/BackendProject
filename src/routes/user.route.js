@@ -43,7 +43,7 @@ router.route('/updateuseravatar').patch(verifyJWT,
 router.route('/updateUserCoverimage').patch(verifyJWT,upload.single('coverImage'), updateUserCoverimage)
 
 
-router.route("/c/:username").get(verifyJWT,getUserChannelProfile)
+router.route("/c/:username").get(verifyJWT,getUserChannelProfile)// /c/harsh 
 
 router.route("/watchhistory").get(verifyJWT,getWatchHistory)
 

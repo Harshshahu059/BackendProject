@@ -131,9 +131,9 @@ const logoutUser=asyncHandler(async(req,res)=>{
     await usermodel.findByIdAndUpdate(
         req.user._id,
         { 
-            $set:{
-                refreshToken:undefined//here is promblem
-            }
+            $unset:{
+                refreshToken:1// this remove the field from document
+           }
         },
         {
             new:true
@@ -282,7 +282,7 @@ const updateUserCoverimage=asyncHandler(async(req,res)=>{
 })
 
 const getUserChannelProfile=asyncHandler(async(req,res)=>{
-    const {username}=req.paramas
+    const {username}=req.params
     if(!username?.trim()){
         throw new apiError(401,"Username not found provide username")
     }
@@ -296,7 +296,7 @@ const getUserChannelProfile=asyncHandler(async(req,res)=>{
             },
             {
                 $lookup:{
-                    form:"subscriptions",
+                    from:"subscriptions",
                     localField:"_id",
                     foreignField:"channel",
                     as:"subscribers"
@@ -320,7 +320,7 @@ const getUserChannelProfile=asyncHandler(async(req,res)=>{
                     },
                     isSubscribed:{
                         $cond:{
-                            if:{$in:[req.user?._id,"subscribers.subscriber"]},
+                            if:{$in:[req.user?._id,"$subscribers.subscriber"]},
                             then:true,
                             else:false
                         }
@@ -333,11 +333,11 @@ const getUserChannelProfile=asyncHandler(async(req,res)=>{
                     fullname:1,
                     username:1,
                     email:1,
-                    subscribersCount,
-                    subscribedToCount,
-                    isSubscribed,
-                    avatar,
-                    coverImage
+                    subscribersCount:1,
+                    subscribedToCount:1,
+                    isSubscribed:1,
+                    avatar:1,
+                    coverImage:1
                 }
             }
         ]
