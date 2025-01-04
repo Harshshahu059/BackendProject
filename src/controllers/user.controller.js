@@ -5,6 +5,7 @@ import {uplodeOnCloudinary} from "../utils/cloudinary.js"
 import {apiResponse} from "../utils/apiResponse.js"
 import {deleteFormCloudinary} from '../utils/cloudinary.delete.js'
 import jwt from "jsonwebtoken"
+import mongoose from "mongoose"
 
 
 
@@ -352,6 +353,55 @@ const getUserChannelProfile=asyncHandler(async(req,res)=>{
             "User channnel fetched successfully"
         ))
 })
+const getWatchHistory=asyncHandler(async(req,res)=>{
+    const user=await usermodel.aggregate(
+        [
+            {
+                $match:{
+                    _id:new mongoose.Types.ObjectId(req.user._id)
+                }
+            },{
+                $lookup:{
+                    from:"videos",
+                    localField:"watchHistory",
+                    foreignField:"_id",
+                    as:"watchhistory",
+                    pipeline:[
+                        {
+                            $lookup:{
+                                from:"users",
+                                localField:"owner",
+                                foreignField:"_id",
+                                as:"owner",
+                                pipeline:[
+                                    {
+                                        $project:{
+                                            username:1,
+                                            fullname:1,
+                                            email,
+                                            avatar,
+                                            coverImage
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                       { $addFields:{
+                            owner:{
+                                $first:"$owner"
+                            }
+                        }}
+                    ]
+                }
+            }
+           
+        ]
+    )
+    return res.status(200)
+              .json(
+                new apiResponse(200,user[0].watchHistory,"WatchHistory fetched successfully ")
+              )
+})
 
 
 export {
@@ -364,5 +414,6 @@ export {
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverimage,
-    getUserChannelProfile
+    getUserChannelProfile,
+    getWatchHistory
 }
