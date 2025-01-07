@@ -9,6 +9,11 @@ const videoSchema=new Schema({
         type:String ,//couldinary url
         required:true
     },
+    thumbnailPublicId:{
+        type:String,
+        require:true
+    }
+    ,
    title:{
         type:String ,
         required:true

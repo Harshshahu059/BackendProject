@@ -8,8 +8,11 @@ app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
 
-import router from "./routes/user.route.js";
-app.use('/user',router)
+import userRouter from "./routes/user.route.js";
+app.use('/user',userRouter)
+
+import videoroute from "./routes/video.route.js";
+app.use('/video',videoroute)
 
 app.use(Cors({origin:process.env.Cors}))
 
