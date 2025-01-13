@@ -1,14 +1,25 @@
 import{asyncHandler}from "../utils/asyncHandler.js"
-import {apiResponse} from "../utils/apiResponse.js"
-import {apiError} from "../utils/apiError.js"
+import{apiResponse} from "../utils/apiResponse.js"
+import{apiError} from "../utils/apiError.js"
 import mongoose from "mongoose"
-import {uplodeOnCloudinary} from "../utils/cloudinary.js"
-import {videoModel} from"../models/video.models.js"
-import {deleteFormCloudinary} from "../utils/cloudinary.delete.js"
+import{uplodeOnCloudinary} from "../utils/cloudinary.js"
+import{videoModel} from"../models/video.models.js"
+import{deleteFormCloudinary} from "../utils/cloudinary.delete.js"
+import{ usermodel } from "../models/user.models.js"
+
+const verfiyOwner=(ownerId,userId)=>{
+    const verfiy=ownerId.equals(userId)
+   if(!verfiy){
+    throw new apiError(401,"Only owner can updateDetails")
+   }
+}
 
 const publishVideo=asyncHandler(async(req,res)=>{
     const {title,description}=req.body
+
+    const userId=req.user._id
     // if(!title&&!description){
+
     //     throw new apiError("title and description is required!!")
     // }
     if (!title || !description) {
@@ -23,7 +34,6 @@ const publishVideo=asyncHandler(async(req,res)=>{
 
     const videoUpload=await uplodeOnCloudinary(video)
     const thumbnailUpload=await uplodeOnCloudinary(thumbnail)
-    console.log(thumbnailUpload)
     if(!videoUpload||!thumbnailUpload){
         throw new apiError(500,"problem when upload videos in cloudinary!")
     }
@@ -34,7 +44,8 @@ const publishVideo=asyncHandler(async(req,res)=>{
         videoFile:videoUpload.url,
         thumbnail:thumbnailUpload.url,
         thumbnailPublicId:thumbnailUpload.public_id,
-        duration:videoUpload.duration
+        duration:videoUpload.duration,
+        owner:userId
      })
      if(!isVideoPublish){
         throw new apiError(500,"somthing went wrong !!");
@@ -69,7 +80,7 @@ const updateVideoDetails=asyncHandler(async(req,res)=>{
     const {videoId}=req.params
     const {title,description}=req.body
     const thumbnail=req.files?.thumbnail[0]?.path//don't write {thumbnail}
-
+    const userId=req.user._id
     
     if(!videoId||videoId.length!==24){
         throw new apiError(401,"Valid videoId (24 characters) is required to find video!")
@@ -79,6 +90,13 @@ const updateVideoDetails=asyncHandler(async(req,res)=>{
     if(!videoDetails){
         throw new apiError(404,"video not found !!")
     }
+
+   //verfiy user
+   
+   verfiyOwner(videoDetails.owner,userId)
+
+
+    //updatesection
     
     
     if(!title||!description){
@@ -133,4 +151,31 @@ const deleteVideoById=asyncHandler(async(req,res)=>{
         .json(new apiResponse(200,{video},"Video delete successfully"))
     
 })
-export {publishVideo,getVideoById,deleteVideoById,updateVideoDetails}
+
+const togglePublishStatus = asyncHandler(async (req, res) => {
+    const { videoId } = req.params
+
+    if(!videoId||videoId.length!==24){
+        throw new apiError(401,"Valid videoId (24 characters) is required to find video!")
+    }
+    
+    const video =await videoModel.findById(videoId)
+    if(!video){
+        throw new apiError(404,"video not found")
+    }
+    
+    // if(publishVideo){
+    //     video.isPublised=false
+    // }else{
+    //     video.isPublised=true
+    // }
+    video.isPublished=!video.isPublished
+   const togglePublishStatus= await video.save()
+    
+    res
+    .status(200)
+    .json(new apiResponse(200,togglePublishStatus,"Successfully toggled the publish status!"))
+
+})
+
+export {publishVideo,getVideoById,deleteVideoById,updateVideoDetails,togglePublishStatus}

@@ -1,5 +1,10 @@
 import { Router } from "express";
-import {publishVideo,getVideoById,deleteVideoById,updateVideoDetails} from "../controllers/video.controller.js"
+import {publishVideo,
+        getVideoById,
+        deleteVideoById,
+        updateVideoDetails,
+        togglePublishStatus  
+      } from "../controllers/video.controller.js"
 import {upload}from "../middleware/multer.middleware.js"
 import {verifyJWT} from "../middleware/auth.middleware.js";
 
@@ -23,6 +28,8 @@ router.route('/:videoId')
 .get(getVideoById)
 .delete(deleteVideoById)// : dont used in postman
 .patch(upload.fields([{ name:'thumbnail', maxCount: 1 }]),updateVideoDetails);
+
+router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
 
 //upload.fields([{ name: 'thumbnail', maxCount: 1 }])
 export default router

@@ -30,11 +30,11 @@ const videoSchema=new Schema({
         type:Number,
         default:0
        },
-       isPublised:{
+       isPublished:{
         type:Boolean,
         default:true
        },
-        owner:{
+     owner:{
             type:Schema.Types.ObjectId,
             ref:"User"
         }
