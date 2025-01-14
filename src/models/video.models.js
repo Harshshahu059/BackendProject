@@ -5,6 +5,10 @@ const videoSchema=new Schema({
         type:String ,//couldinary url
         required:true
     },
+    videoPublicId:{
+        type:String,
+        require:true
+    },
    thumbnail:{
         type:String ,//couldinary url
         required:true

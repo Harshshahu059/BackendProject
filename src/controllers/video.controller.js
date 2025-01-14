@@ -5,12 +5,12 @@ import mongoose from "mongoose"
 import{uplodeOnCloudinary} from "../utils/cloudinary.js"
 import{videoModel} from"../models/video.models.js"
 import{deleteFormCloudinary} from "../utils/cloudinary.delete.js"
-import{ usermodel } from "../models/user.models.js"
+import{usermodel} from "../models/user.models.js"
 
-const verfiyOwner=(ownerId,userId)=>{
+const verfiyOwner=(ownerId,userId,msg)=>{
     const verfiy=ownerId.equals(userId)
    if(!verfiy){
-    throw new apiError(401,"Only owner can updateDetails")
+    throw new apiError(401,msg)
    }
 }
 
@@ -42,6 +42,7 @@ const publishVideo=asyncHandler(async(req,res)=>{
         title,
         description,
         videoFile:videoUpload.url,
+        videoPublicId:videoUpload.public_id,
         thumbnail:thumbnailUpload.url,
         thumbnailPublicId:thumbnailUpload.public_id,
         duration:videoUpload.duration,
@@ -140,13 +141,26 @@ const updateVideoDetails=asyncHandler(async(req,res)=>{
 
 const deleteVideoById=asyncHandler(async(req,res)=>{
     const {videoId}=req.params
+    const userId=req.user._id
+
     if(!videoId||videoId.length!==24){
         throw new apiError(401,"Valid videoId (24 characters) is required to find video!")       
     }
-    const video=await videoModel.findByIdAndDelete(videoId)
+
+    const video=await videoModel.findById(videoId)
+    console.log(video)
     if(!video){
         throw new apiError(404,"video not found !")
     }
+
+    verfiyOwner(video.owner,userId,"onlyOwner can delete the video!!")
+
+    // delete video form database 
+    await videoModel.findByIdAndDelete(videoId)
+    // delete video and thumbnail form cloudinary
+    await deleteFormCloudinary(video.thumbnailPublicId,"image") 
+    await deleteFormCloudinary(video.videoPublicId,"video")
+
     res.status(200)
         .json(new apiResponse(200,{video},"Video delete successfully"))
     
@@ -169,6 +183,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     // }else{
     //     video.isPublised=true
     // }
+    verfiyOwner(req.user._id,video.owner,"Only owner can toggle!!")
     video.isPublished=!video.isPublished
    const togglePublishStatus= await video.save()
     
@@ -177,5 +192,6 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     .json(new apiResponse(200,togglePublishStatus,"Successfully toggled the publish status!"))
 
 })
+
 
 export {publishVideo,getVideoById,deleteVideoById,updateVideoDetails,togglePublishStatus}
