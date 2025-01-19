@@ -19,12 +19,14 @@ const videoSchema=new Schema({
     }
     ,
    title:{
-        type:String ,
-        required:true
+        type:String,
+        required:true,
+        trim:true
     },
     description:{
         type:String ,
-        required:true
+        required:true,
+        trim:true
     },
     duration:{
         type:Number ,//couldinary 

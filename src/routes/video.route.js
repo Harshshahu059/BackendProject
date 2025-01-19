@@ -3,7 +3,8 @@ import {publishVideo,
         getVideoById,
         deleteVideoById,
         updateVideoDetails,
-        togglePublishStatus  
+        togglePublishStatus,
+        getAllVideos  
       } from "../controllers/video.controller.js"
 import {upload}from "../middleware/multer.middleware.js"
 import {verifyJWT} from "../middleware/auth.middleware.js";
@@ -11,7 +12,9 @@ import {verifyJWT} from "../middleware/auth.middleware.js";
 const router=Router()
 router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
-router.route('/publishvideo').post(
+router.route('/')
+.get(getAllVideos)
+.post(
   upload.fields([
     {
         name:"video",
@@ -24,6 +27,7 @@ router.route('/publishvideo').post(
   ]),
   publishVideo
 )
+
 router.route('/:videoId')
 .get(getVideoById)
 .delete(deleteVideoById)// : dont used in postman

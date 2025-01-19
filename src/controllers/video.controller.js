@@ -14,6 +14,82 @@ const verfiyOwner=(ownerId,userId,msg)=>{
    }
 }
 
+const getAllVideos = asyncHandler(async (req, res) => {
+ const {page = 1, limit = 10,query,sortBy="createdAt",sortType,userId} = req.query
+ // page is remaining  { $skip: (parseInt(page) - 1) * parseInt(limit) }
+ // check at least one of them is recevied
+
+ if (!query && !userId) {
+    throw new apiError(400, "At least one of 'query' or 'userId' is required");
+}
+
+// check always sortType in 1,-1
+const sortDirection = parseInt(sortType) === -1 ? -1 : 1; 
+
+ const findVideoBy=query?
+{ $or: [
+    { title: { $regex: query, $options: "i" } },
+    { description: { $regex: query, $options: "i" } },
+] }: userId
+? { owner: new mongoose.Types.ObjectId(userId) }
+: {};
+
+//aggergate pipline to find videos
+ const videos= await videoModel.aggregate(
+   [
+    {
+        $match:findVideoBy
+    },
+    {
+        $sort:{
+            sortBy:sortDirection
+        }
+    },
+    { 
+    // basically here is skip the previous video that already feacted
+     $skip: (parseInt(page) - 1) * parseInt(limit) 
+    },
+    {
+        $limit:parseInt(limit)
+    },
+    {
+        $lookup:{
+           from:"users",
+           localField:"owner",
+           foreignField:"_id",
+           as:"owner",
+           pipeline:[{
+               $project:{
+                   _id:1,
+                   fullname:1,
+                   username:1,
+                   avatar:1
+               }}
+           ]
+        }
+       },
+    {
+        $project:{
+            videoFile:1,
+            thumbnail:1,
+            title:1,
+            description:1,
+            owner: { $arrayElemAt: ["$owner", 0] }//or used $first by addfield
+        }
+
+    }
+
+]
+ )
+ 
+
+if(!videos||videos.length===0){
+    throw new apiError(404,"video not found!!")
+}
+res.status(200)
+.json(new apiResponse(200,videos,"video fetched successfully!!"))    
+})
+
 const publishVideo=asyncHandler(async(req,res)=>{
     const {title,description}=req.body
 
@@ -74,7 +150,7 @@ const getVideoById=asyncHandler(async(req,res)=>{
 
     res.
     status(200)
-    .json(new apiResponse(200,video.videoFile,"video fetched  successfully form database"))
+    .json(new apiResponse(200,video,"video fetched  successfully form database"))
 })
 
 const updateVideoDetails=asyncHandler(async(req,res)=>{
@@ -194,4 +270,4 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 })
 
 
-export {publishVideo,getVideoById,deleteVideoById,updateVideoDetails,togglePublishStatus}
+export {publishVideo,getVideoById,deleteVideoById,updateVideoDetails,togglePublishStatus,getAllVideos}
