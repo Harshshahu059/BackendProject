@@ -7,12 +7,17 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
-
+//import routes
 import userRouter from "./routes/user.route.js";
-app.use('/user',userRouter)
-
 import videoroute from "./routes/video.route.js";
+import playlistRoute from "./routes/playlist.route.js"
+
+
+
+//routes declaration
+app.use('/user',userRouter)
 app.use('/video',videoroute)
+app.use('/playlist',playlistRoute)
 
 app.use(Cors({origin:process.env.Cors}))
 
