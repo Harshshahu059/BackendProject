@@ -10,7 +10,8 @@ app.use(cookieParser())
 //import routes
 import userRouter from "./routes/user.route.js";
 import videoroute from "./routes/video.route.js";
-import playlistRoute from "./routes/playlist.route.js"
+import playlistRoute from "./routes/playlist.route.js";
+import commentRoute from "./routes/comment.route.js"
 
 
 
@@ -18,6 +19,7 @@ import playlistRoute from "./routes/playlist.route.js"
 app.use('/user',userRouter)
 app.use('/video',videoroute)
 app.use('/playlist',playlistRoute)
+app.use('/comment',commentRoute)
 
 app.use(Cors({origin:process.env.Cors}))
 
