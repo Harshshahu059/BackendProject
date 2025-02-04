@@ -121,7 +121,6 @@ const getLikedVideos = asyncHandler(async (req, res) => {
             likedBy:new mongoose.Types.ObjectId(userId),
             video:{$exists:true}// this check video is exist in data
          }
-
       },
       {
          $lookup:{

@@ -14,6 +14,7 @@ import playlistRoute from "./routes/playlist.route.js";
 import commentRoute from "./routes/comment.route.js";
 import tweetRoute from "./routes/tweets.route.js";
 import likeRoute from "./routes/like.route.js";
+import subscriptionRoute from "./routes/subscription.route.js"
 
 //routes declaration
 app.use('/user',userRouter)
@@ -22,6 +23,7 @@ app.use('/playlist',playlistRoute)
 app.use('/comment',commentRoute)
 app.use('/tweet',tweetRoute)
 app.use('/like',likeRoute)
+app.use('/subscriptions',subscriptionRoute)
 
 app.use(Cors({origin:process.env.Cors}))
 
